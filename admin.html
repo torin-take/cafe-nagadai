@@ -1177,6 +1177,7 @@
 <script>
   let currentData = loadData();
   let currentSection = 'basic';
+  const fileUploads = {};
 
   const SECTION_TITLES = {
     basic: '基本情報',
@@ -1203,7 +1204,7 @@
 
   // ===== IMAGE PREVIEW =====
   function previewImg(inputId, previewId) {
-    const url = document.getElementById(inputId).value;
+    const url = getImgValue(inputId, '');
     const preview = document.getElementById(previewId);
     if (!preview) return;
     if (url) {
@@ -1216,9 +1217,9 @@
   }
 
   function applyUrlInput(inputId, previewId) {
+    delete fileUploads[inputId];
     const el = document.getElementById(inputId);
     if (!el) return;
-    el.dataset.fileurl = '';
     const url = el.value.trim();
     const preview = document.getElementById(previewId);
     if (!preview) return;
@@ -1237,11 +1238,9 @@
     if (!file) return;
     const reader = new FileReader();
     reader.onload = e => {
-      const dataUrl = e.target.result;
-      const urlField = document.getElementById(urlFieldId);
-      if (urlField) urlField.dataset.fileurl = dataUrl;
+      fileUploads[urlFieldId] = e.target.result;
       const preview = document.getElementById(previewId);
-      if (preview) { preview.src = dataUrl; preview.classList.add('loaded'); }
+      if (preview) { preview.src = e.target.result; preview.classList.add('loaded'); }
     };
     reader.readAsDataURL(file);
     input.value = '';
@@ -1258,14 +1257,26 @@
     // Hero
     Object.keys(data.hero).forEach(key => {
       const el = document.getElementById('hero-' + key);
-      if (el) el.value = data.hero[key];
+      if (!el) return;
+      if (key === 'bg_image' && data.hero.bg_image && data.hero.bg_image.startsWith('data:')) {
+        fileUploads['hero-bg_image'] = data.hero.bg_image;
+        el.value = '';
+      } else {
+        el.value = data.hero[key];
+      }
     });
     previewImg('hero-bg_image', 'hero-img-preview');
 
     // About
     Object.keys(data.about).forEach(key => {
       const el = document.getElementById('about-' + key);
-      if (el) el.value = data.about[key];
+      if (!el) return;
+      if (key === 'image' && data.about.image && data.about.image.startsWith('data:')) {
+        fileUploads['about-image'] = data.about.image;
+        el.value = '';
+      } else {
+        el.value = data.about[key];
+      }
     });
     previewImg('about-image', 'about-img-preview');
 
@@ -1350,10 +1361,11 @@
   }
 
   function buildMenuItemCard(cat, i, item) {
+    const imgId = `menu-${cat}-${i}-image`;
+    const prevId = `menu-preview-${cat}-${i}`;
     const isData = item.image && item.image.startsWith('data:');
+    if (isData) fileUploads[imgId] = item.image;
     const urlVal = isData ? '' : escHtml(item.image);
-    const fileUrl = isData ? escHtml(item.image) : '';
-    const ph = 'https://（画像URL）…';
     const card = document.createElement('div');
     card.className = 'menu-item-card';
     card.id = `menu-card-${cat}-${i}`;
@@ -1378,22 +1390,26 @@
         <div class="form-group form-full">
           <label>画像</label>
           <div class="img-input-row">
-            <input type="url" id="menu-${cat}-${i}-image" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}" onkeydown="if(event.key==='Enter'){applyUrlInput('menu-${cat}-${i}-image','menu-preview-${cat}-${i}');event.preventDefault()}" />
-            <button type="button" class="btn-url-apply" onclick="applyUrlInput('menu-${cat}-${i}-image','menu-preview-${cat}-${i}')">
+            <input type="url" id="${imgId}" value="${urlVal}" placeholder="https://（画像URL）…" onkeydown="if(event.key==='Enter'){applyUrlInput('${imgId}','${prevId}');event.preventDefault()}" />
+            <button type="button" class="btn-url-apply" onclick="applyUrlInput('${imgId}','${prevId}')">
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>確定
             </button>
             <label class="btn-file-upload" for="menu-${cat}-${i}-file">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               写真を追加
             </label>
-            <input type="file" id="menu-${cat}-${i}-file" accept="image/*" style="display:none" onchange="handleFileUpload(this,'menu-${cat}-${i}-image','menu-preview-${cat}-${i}')" />
+            <input type="file" id="menu-${cat}-${i}-file" accept="image/*" style="display:none" onchange="handleFileUpload(this,'${imgId}','${prevId}')" />
           </div>
         </div>
         <div class="img-preview-wrap form-full">
-          <img class="img-preview ${item.image ? 'loaded' : ''}" id="menu-preview-${cat}-${i}" src="${escHtml(item.image)}" alt="" />
+          <img class="img-preview" id="${prevId}" alt="" />
         </div>
       </div>
     `;
+    if (item.image) {
+      const prev = card.querySelector('#' + prevId);
+      if (prev) { prev.src = item.image; prev.classList.add('loaded'); }
+    }
     return card;
   }
 
@@ -1525,10 +1541,11 @@
   }
 
   function buildExtraMenuItemCard(catIndex, j, item) {
+    const imgId = `menu-extra-${catIndex}-${j}-image`;
+    const prevId = `menu-preview-extra-${catIndex}-${j}`;
     const isData = item.image && item.image.startsWith('data:');
+    if (isData) fileUploads[imgId] = item.image;
     const urlVal = isData ? '' : escHtml(item.image);
-    const fileUrl = isData ? escHtml(item.image) : '';
-    const ph = 'https://（画像URL）…';
     const card = document.createElement('div');
     card.className = 'menu-item-card';
     card.id = `menu-card-extra-${catIndex}-${j}`;
@@ -1553,9 +1570,9 @@
         <div class="form-group form-full">
           <label>画像</label>
           <div class="img-input-row">
-            <input type="url" id="menu-extra-${catIndex}-${j}-image" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}"
-                   onkeydown="if(event.key==='Enter'){applyUrlInput('menu-extra-${catIndex}-${j}-image','menu-preview-extra-${catIndex}-${j}');event.preventDefault()}" />
-            <button type="button" class="btn-url-apply" onclick="applyUrlInput('menu-extra-${catIndex}-${j}-image','menu-preview-extra-${catIndex}-${j}')">
+            <input type="url" id="${imgId}" value="${urlVal}" placeholder="https://（画像URL）…"
+                   onkeydown="if(event.key==='Enter'){applyUrlInput('${imgId}','${prevId}');event.preventDefault()}" />
+            <button type="button" class="btn-url-apply" onclick="applyUrlInput('${imgId}','${prevId}')">
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>確定
             </button>
             <label class="btn-file-upload" for="menu-extra-${catIndex}-${j}-file">
@@ -1563,13 +1580,17 @@
               写真を追加
             </label>
             <input type="file" id="menu-extra-${catIndex}-${j}-file" accept="image/*" style="display:none"
-                   onchange="handleFileUpload(this,'menu-extra-${catIndex}-${j}-image','menu-preview-extra-${catIndex}-${j}')" />
+                   onchange="handleFileUpload(this,'${imgId}','${prevId}')" />
           </div>
         </div>
         <div class="img-preview-wrap form-full">
-          <img class="img-preview ${item.image ? 'loaded' : ''}" id="menu-preview-extra-${catIndex}-${j}" src="${escHtml(item.image)}" alt="" />
+          <img class="img-preview" id="${prevId}" alt="" />
         </div>
       </div>`;
+    if (item.image) {
+      const prev = card.querySelector('#' + prevId);
+      if (prev) { prev.src = item.image; prev.classList.add('loaded'); }
+    }
     return card;
   }
 
@@ -1644,18 +1665,18 @@
     if (!container) return;
     container.innerHTML = '';
     items.forEach((item, i) => {
+      const urlId = `gallery-${i}-url`;
       const isData = item.url && item.url.startsWith('data:');
+      if (isData) fileUploads[urlId] = item.url;
       const urlVal = isData ? '' : escHtml(item.url);
-      const fileUrl = isData ? escHtml(item.url) : '';
-      const ph = 'https://（画像URL）…';
       const div = document.createElement('div');
       div.className = 'gallery-admin-item';
       div.id = `gallery-item-${i}`;
       div.innerHTML = `
-        <img class="gallery-admin-thumb" src="${escHtml(item.url)}" alt="${escHtml(item.alt)}" onerror="this.style.background='#eee'" />
+        <img class="gallery-admin-thumb" alt="${escHtml(item.alt)}" onerror="this.style.background='#eee'" />
         <div style="padding:8px 10px 4px;">
           <div class="img-input-row">
-            <input type="url" id="gallery-${i}-url" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}"
+            <input type="url" id="${urlId}" value="${urlVal}" placeholder="https://（画像URL）…"
                    onkeydown="if(event.key==='Enter'){applyGalleryUrl(${i});event.preventDefault()}" />
             <button type="button" class="btn-url-apply" onclick="applyGalleryUrl(${i})">
               <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>確定
@@ -1672,14 +1693,19 @@
           <button class="btn-delete" onclick="deleteGalleryItem(${i})" style="white-space:nowrap;flex-shrink:0;">削除</button>
         </div>
       `;
+      if (item.url) {
+        const thumb = div.querySelector('.gallery-admin-thumb');
+        if (thumb) { thumb.src = item.url; }
+      }
       container.appendChild(div);
     });
   }
 
   function applyGalleryUrl(i) {
-    const el = document.getElementById(`gallery-${i}-url`);
+    const id = `gallery-${i}-url`;
+    delete fileUploads[id];
+    const el = document.getElementById(id);
     if (!el) return;
-    el.dataset.fileurl = '';
     const thumb = document.querySelector(`#gallery-item-${i} .gallery-admin-thumb`);
     if (thumb) thumb.src = el.value.trim();
   }
@@ -1689,11 +1715,9 @@
     if (!file) return;
     const reader = new FileReader();
     reader.onload = e => {
-      const dataUrl = e.target.result;
-      const urlField = document.getElementById(`gallery-${i}-url`);
-      if (urlField) urlField.dataset.fileurl = dataUrl;
+      fileUploads[`gallery-${i}-url`] = e.target.result;
       const thumb = document.querySelector(`#gallery-item-${i} .gallery-admin-thumb`);
-      if (thumb) thumb.src = dataUrl;
+      if (thumb) thumb.src = e.target.result;
     };
     reader.readAsDataURL(file);
     input.value = '';
@@ -1812,7 +1836,7 @@
   function getImgValue(id, fallback) {
     const el = document.getElementById(id);
     if (!el) return fallback || '';
-    return el.dataset.fileurl || el.value.trim() || fallback || '';
+    return fileUploads[id] || el.value.trim() || fallback || '';
   }
 
   // ===== SAVE =====
