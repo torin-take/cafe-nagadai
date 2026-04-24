@@ -1549,8 +1549,8 @@
     setTxt('d-hero-title-jp', d.hero.title_jp);
     setTxt('d-hero-title-en', d.hero.title_en);
     setHtml('d-hero-sub', nl2br(d.hero.description));
-    document.querySelector('.hero-bg').style.backgroundImage =
-      `linear-gradient(160deg,rgba(74,47,26,.45) 0%,rgba(44,26,14,.20) 60%,rgba(92,122,92,.30) 100%),url('${d.hero.bg_image}')`;
+    document.querySelector('.hero-bg').style.background =
+      `linear-gradient(160deg,rgba(74,47,26,.45) 0%,rgba(44,26,14,.20) 60%,rgba(92,122,92,.30) 100%),url('${d.hero.bg_image}') center/cover no-repeat`;
 
     // About
     setTxt('d-about-eyebrow', d.about.eyebrow);
