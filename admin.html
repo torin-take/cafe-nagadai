@@ -1178,7 +1178,9 @@
 
   // ===== IMAGE PREVIEW =====
   function previewImg(inputId, previewId) {
-    const url = document.getElementById(inputId).value;
+    const el = document.getElementById(inputId);
+    if (el && el.dataset.fileurl) el.dataset.fileurl = '';
+    const url = el ? el.value : '';
     const preview = document.getElementById(previewId);
     if (!preview) return;
     if (url) {
@@ -1197,11 +1199,7 @@
     reader.onload = e => {
       const dataUrl = e.target.result;
       const urlField = document.getElementById(urlFieldId);
-      if (urlField) {
-        urlField.dataset.fileurl = dataUrl;
-        urlField.value = '';
-        urlField.placeholder = 'ファイル選択済み（URLを入力すると上書き）';
-      }
+      if (urlField) urlField.dataset.fileurl = dataUrl;
       const preview = document.getElementById(previewId);
       if (preview) { preview.src = dataUrl; preview.classList.add('loaded'); }
     };
@@ -1315,7 +1313,7 @@
     const isData = item.image && item.image.startsWith('data:');
     const urlVal = isData ? '' : escHtml(item.image);
     const fileUrl = isData ? escHtml(item.image) : '';
-    const ph = isData ? 'ファイル選択済み（URLを入力すると上書き）' : 'https://（画像URL）…';
+    const ph = 'https://（画像URL）…';
     const card = document.createElement('div');
     card.className = 'menu-item-card';
     card.id = `menu-card-${cat}-${i}`;
@@ -1487,7 +1485,7 @@
     const isData = item.image && item.image.startsWith('data:');
     const urlVal = isData ? '' : escHtml(item.image);
     const fileUrl = isData ? escHtml(item.image) : '';
-    const ph = isData ? 'ファイル選択済み（URLを入力すると上書き）' : 'https://（画像URL）…';
+    const ph = 'https://（画像URL）…';
     const card = document.createElement('div');
     card.className = 'menu-item-card';
     card.id = `menu-card-extra-${catIndex}-${j}`;
@@ -1603,7 +1601,7 @@
       const isData = item.url && item.url.startsWith('data:');
       const urlVal = isData ? '' : escHtml(item.url);
       const fileUrl = isData ? escHtml(item.url) : '';
-      const ph = isData ? 'ファイル選択済み（URLを入力すると上書き）' : 'https://（画像URL）…';
+      const ph = 'https://（画像URL）…';
       const div = document.createElement('div');
       div.className = 'gallery-admin-item';
       div.id = `gallery-item-${i}`;
@@ -1629,7 +1627,9 @@
   }
 
   function updateGalleryThumb(i) {
-    const url = getImgValue(`gallery-${i}-url`, '');
+    const el = document.getElementById(`gallery-${i}-url`);
+    if (el && el.dataset.fileurl) el.dataset.fileurl = '';
+    const url = el ? el.value : '';
     const thumb = document.querySelector(`#gallery-item-${i} .gallery-admin-thumb`);
     if (thumb) thumb.src = url;
   }
@@ -1641,11 +1641,7 @@
     reader.onload = e => {
       const dataUrl = e.target.result;
       const urlField = document.getElementById(`gallery-${i}-url`);
-      if (urlField) {
-        urlField.dataset.fileurl = dataUrl;
-        urlField.value = '';
-        urlField.placeholder = 'ファイル選択済み（URLを入力すると上書き）';
-      }
+      if (urlField) urlField.dataset.fileurl = dataUrl;
       const thumb = document.querySelector(`#gallery-item-${i} .gallery-admin-thumb`);
       if (thumb) thumb.src = dataUrl;
     };
@@ -1766,7 +1762,7 @@
   function getImgValue(id, fallback) {
     const el = document.getElementById(id);
     if (!el) return fallback || '';
-    return el.value.trim() || el.dataset.fileurl || fallback || '';
+    return el.dataset.fileurl || el.value.trim() || fallback || '';
   }
 
   // ===== SAVE =====
