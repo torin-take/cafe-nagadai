@@ -496,6 +496,25 @@
     .btn-file-upload:hover { border-color: var(--brown-light); color: var(--brown); background: #fdf5ee; }
     .btn-file-upload svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
 
+    .btn-url-apply {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 10px 12px;
+      background: var(--input-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: 12px;
+      color: var(--brown);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      font-family: 'Noto Sans JP', sans-serif;
+      flex-shrink: 0;
+    }
+    .btn-url-apply:hover { border-color: var(--brown); background: #fdf5ee; }
+    .btn-url-apply svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
     .img-preview-wrap {
       position: relative;
       margin-top: 8px;
@@ -911,7 +930,10 @@
       <div class="form-group">
         <label>背景画像</label>
         <div class="img-input-row">
-          <input type="url" id="hero-bg_image" placeholder="https://（画像URL）…" oninput="previewImg('hero-bg_image','hero-img-preview')" />
+          <input type="url" id="hero-bg_image" placeholder="https://（画像URL）…" onkeydown="if(event.key==='Enter'){applyUrlInput('hero-bg_image','hero-img-preview');event.preventDefault()}" />
+          <button type="button" class="btn-url-apply" onclick="applyUrlInput('hero-bg_image','hero-img-preview')">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>確定
+          </button>
           <label class="btn-file-upload" for="hero-bg_file">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             写真を追加
@@ -965,7 +987,10 @@
         <div class="form-group form-full">
           <label>About画像</label>
           <div class="img-input-row">
-            <input type="url" id="about-image" placeholder="https://（画像URL）…" oninput="previewImg('about-image','about-img-preview')" />
+            <input type="url" id="about-image" placeholder="https://（画像URL）…" onkeydown="if(event.key==='Enter'){applyUrlInput('about-image','about-img-preview');event.preventDefault()}" />
+            <button type="button" class="btn-url-apply" onclick="applyUrlInput('about-image','about-img-preview')">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>確定
+            </button>
             <label class="btn-file-upload" for="about-image-file">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               写真を追加
@@ -1178,9 +1203,7 @@
 
   // ===== IMAGE PREVIEW =====
   function previewImg(inputId, previewId) {
-    const el = document.getElementById(inputId);
-    if (el && el.dataset.fileurl) el.dataset.fileurl = '';
-    const url = el ? el.value : '';
+    const url = document.getElementById(inputId).value;
     const preview = document.getElementById(previewId);
     if (!preview) return;
     if (url) {
@@ -1188,6 +1211,23 @@
       preview.onload = () => preview.classList.add('loaded');
       preview.onerror = () => preview.classList.remove('loaded');
     } else {
+      preview.classList.remove('loaded');
+    }
+  }
+
+  function applyUrlInput(inputId, previewId) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    el.dataset.fileurl = '';
+    const url = el.value.trim();
+    const preview = document.getElementById(previewId);
+    if (!preview) return;
+    if (url) {
+      preview.src = url;
+      preview.onload = () => preview.classList.add('loaded');
+      preview.onerror = () => preview.classList.remove('loaded');
+    } else {
+      preview.src = '';
       preview.classList.remove('loaded');
     }
   }
@@ -1338,7 +1378,10 @@
         <div class="form-group form-full">
           <label>画像</label>
           <div class="img-input-row">
-            <input type="url" id="menu-${cat}-${i}-image" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}" oninput="previewImg('menu-${cat}-${i}-image','menu-preview-${cat}-${i}')" />
+            <input type="url" id="menu-${cat}-${i}-image" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}" onkeydown="if(event.key==='Enter'){applyUrlInput('menu-${cat}-${i}-image','menu-preview-${cat}-${i}');event.preventDefault()}" />
+            <button type="button" class="btn-url-apply" onclick="applyUrlInput('menu-${cat}-${i}-image','menu-preview-${cat}-${i}')">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>確定
+            </button>
             <label class="btn-file-upload" for="menu-${cat}-${i}-file">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               写真を追加
@@ -1511,7 +1554,10 @@
           <label>画像</label>
           <div class="img-input-row">
             <input type="url" id="menu-extra-${catIndex}-${j}-image" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}"
-                   oninput="previewImg('menu-extra-${catIndex}-${j}-image','menu-preview-extra-${catIndex}-${j}')" />
+                   onkeydown="if(event.key==='Enter'){applyUrlInput('menu-extra-${catIndex}-${j}-image','menu-preview-extra-${catIndex}-${j}');event.preventDefault()}" />
+            <button type="button" class="btn-url-apply" onclick="applyUrlInput('menu-extra-${catIndex}-${j}-image','menu-preview-extra-${catIndex}-${j}')">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>確定
+            </button>
             <label class="btn-file-upload" for="menu-extra-${catIndex}-${j}-file">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               写真を追加
@@ -1609,7 +1655,11 @@
         <img class="gallery-admin-thumb" src="${escHtml(item.url)}" alt="${escHtml(item.alt)}" onerror="this.style.background='#eee'" />
         <div style="padding:8px 10px 4px;">
           <div class="img-input-row">
-            <input type="url" id="gallery-${i}-url" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}" oninput="updateGalleryThumb(${i})" />
+            <input type="url" id="gallery-${i}-url" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}"
+                   onkeydown="if(event.key==='Enter'){applyGalleryUrl(${i});event.preventDefault()}" />
+            <button type="button" class="btn-url-apply" onclick="applyGalleryUrl(${i})">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>確定
+            </button>
             <label class="btn-file-upload" for="gallery-${i}-file">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               追加
@@ -1626,12 +1676,12 @@
     });
   }
 
-  function updateGalleryThumb(i) {
+  function applyGalleryUrl(i) {
     const el = document.getElementById(`gallery-${i}-url`);
-    if (el && el.dataset.fileurl) el.dataset.fileurl = '';
-    const url = el ? el.value : '';
+    if (!el) return;
+    el.dataset.fileurl = '';
     const thumb = document.querySelector(`#gallery-item-${i} .gallery-admin-thumb`);
-    if (thumb) thumb.src = url;
+    if (thumb) thumb.src = el.value.trim();
   }
 
   function handleGalleryFileUpload(input, i) {
