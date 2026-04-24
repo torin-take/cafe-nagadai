@@ -1197,7 +1197,11 @@
     reader.onload = e => {
       const dataUrl = e.target.result;
       const urlField = document.getElementById(urlFieldId);
-      if (urlField) urlField.value = dataUrl;
+      if (urlField) {
+        urlField.dataset.fileurl = dataUrl;
+        urlField.value = '';
+        urlField.placeholder = 'ファイル選択済み（URLを入力すると上書き）';
+      }
       const preview = document.getElementById(previewId);
       if (preview) { preview.src = dataUrl; preview.classList.add('loaded'); }
     };
@@ -1308,6 +1312,10 @@
   }
 
   function buildMenuItemCard(cat, i, item) {
+    const isData = item.image && item.image.startsWith('data:');
+    const urlVal = isData ? '' : escHtml(item.image);
+    const fileUrl = isData ? escHtml(item.image) : '';
+    const ph = isData ? 'ファイル選択済み（URLを入力すると上書き）' : 'https://（画像URL）…';
     const card = document.createElement('div');
     card.className = 'menu-item-card';
     card.id = `menu-card-${cat}-${i}`;
@@ -1332,7 +1340,7 @@
         <div class="form-group form-full">
           <label>画像</label>
           <div class="img-input-row">
-            <input type="url" id="menu-${cat}-${i}-image" value="${escHtml(item.image)}" placeholder="https://（画像URL）…" oninput="previewImg('menu-${cat}-${i}-image','menu-preview-${cat}-${i}')" />
+            <input type="url" id="menu-${cat}-${i}-image" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}" oninput="previewImg('menu-${cat}-${i}-image','menu-preview-${cat}-${i}')" />
             <label class="btn-file-upload" for="menu-${cat}-${i}-file">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               写真を追加
@@ -1353,7 +1361,7 @@
       name:  v(`menu-${cat}-${i}-name`,  item.name),
       price: v(`menu-${cat}-${i}-price`, item.price),
       desc:  v(`menu-${cat}-${i}-desc`,  item.desc),
-      image: v(`menu-${cat}-${i}-image`, item.image),
+      image: getImgValue(`menu-${cat}-${i}-image`, item.image),
     }));
   }
 
@@ -1364,7 +1372,7 @@
       name:  v(`menu-extra-${catIndex}-${j}-name`,  item.name),
       price: v(`menu-extra-${catIndex}-${j}-price`, item.price),
       desc:  v(`menu-extra-${catIndex}-${j}-desc`,  item.desc),
-      image: v(`menu-extra-${catIndex}-${j}-image`, item.image),
+      image: getImgValue(`menu-extra-${catIndex}-${j}-image`, item.image),
     }));
   }
 
@@ -1476,6 +1484,10 @@
   }
 
   function buildExtraMenuItemCard(catIndex, j, item) {
+    const isData = item.image && item.image.startsWith('data:');
+    const urlVal = isData ? '' : escHtml(item.image);
+    const fileUrl = isData ? escHtml(item.image) : '';
+    const ph = isData ? 'ファイル選択済み（URLを入力すると上書き）' : 'https://（画像URL）…';
     const card = document.createElement('div');
     card.className = 'menu-item-card';
     card.id = `menu-card-extra-${catIndex}-${j}`;
@@ -1500,7 +1512,7 @@
         <div class="form-group form-full">
           <label>画像</label>
           <div class="img-input-row">
-            <input type="url" id="menu-extra-${catIndex}-${j}-image" value="${escHtml(item.image)}" placeholder="https://（画像URL）…"
+            <input type="url" id="menu-extra-${catIndex}-${j}-image" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}"
                    oninput="previewImg('menu-extra-${catIndex}-${j}-image','menu-preview-extra-${catIndex}-${j}')" />
             <label class="btn-file-upload" for="menu-extra-${catIndex}-${j}-file">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -1588,6 +1600,10 @@
     if (!container) return;
     container.innerHTML = '';
     items.forEach((item, i) => {
+      const isData = item.url && item.url.startsWith('data:');
+      const urlVal = isData ? '' : escHtml(item.url);
+      const fileUrl = isData ? escHtml(item.url) : '';
+      const ph = isData ? 'ファイル選択済み（URLを入力すると上書き）' : 'https://（画像URL）…';
       const div = document.createElement('div');
       div.className = 'gallery-admin-item';
       div.id = `gallery-item-${i}`;
@@ -1595,7 +1611,7 @@
         <img class="gallery-admin-thumb" src="${escHtml(item.url)}" alt="${escHtml(item.alt)}" onerror="this.style.background='#eee'" />
         <div style="padding:8px 10px 4px;">
           <div class="img-input-row">
-            <input type="url" id="gallery-${i}-url" value="${escHtml(item.url)}" placeholder="https://（画像URL）…" oninput="updateGalleryThumb(${i})" />
+            <input type="url" id="gallery-${i}-url" value="${urlVal}" data-fileurl="${fileUrl}" placeholder="${ph}" oninput="updateGalleryThumb(${i})" />
             <label class="btn-file-upload" for="gallery-${i}-file">
               <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               追加
@@ -1613,7 +1629,7 @@
   }
 
   function updateGalleryThumb(i) {
-    const url = document.getElementById(`gallery-${i}-url`).value;
+    const url = getImgValue(`gallery-${i}-url`, '');
     const thumb = document.querySelector(`#gallery-item-${i} .gallery-admin-thumb`);
     if (thumb) thumb.src = url;
   }
@@ -1624,7 +1640,12 @@
     const reader = new FileReader();
     reader.onload = e => {
       const dataUrl = e.target.result;
-      document.getElementById(`gallery-${i}-url`).value = dataUrl;
+      const urlField = document.getElementById(`gallery-${i}-url`);
+      if (urlField) {
+        urlField.dataset.fileurl = dataUrl;
+        urlField.value = '';
+        urlField.placeholder = 'ファイル選択済み（URLを入力すると上書き）';
+      }
       const thumb = document.querySelector(`#gallery-item-${i} .gallery-admin-thumb`);
       if (thumb) thumb.src = dataUrl;
     };
@@ -1635,7 +1656,7 @@
   function collectGalleryIntoData() {
     const count = document.querySelectorAll('.gallery-admin-item').length;
     currentData.gallery = Array.from({ length: count }, (_, i) => ({
-      url: v(`gallery-${i}-url`, ''),
+      url: getImgValue(`gallery-${i}-url`, ''),
       alt: v(`gallery-${i}-alt`, '')
     }));
   }
@@ -1670,16 +1691,18 @@
     });
 
     // Hero
-    ['eyebrow','title_jp','title_en','description','bg_image'].forEach(k => {
+    ['eyebrow','title_jp','title_en','description'].forEach(k => {
       const el = document.getElementById('hero-' + k);
       if (el) data.hero[k] = el.value;
     });
+    data.hero.bg_image = getImgValue('hero-bg_image', data.hero.bg_image);
 
     // About
-    ['eyebrow','title','p1','p2','p3','tags','image'].forEach(k => {
+    ['eyebrow','title','p1','p2','p3','tags'].forEach(k => {
       const el = document.getElementById('about-' + k);
       if (el) data.about[k] = el.value;
     });
+    data.about.image = getImgValue('about-image', data.about.image);
 
     // Concepts - DOM から動的にカウント
     const conceptCount = document.querySelectorAll('.concept-item-card').length;
@@ -1694,7 +1717,7 @@
         name: v(`menu-${cat}-${i}-name`, item.name),
         price: v(`menu-${cat}-${i}-price`, item.price),
         desc: v(`menu-${cat}-${i}-desc`, item.desc),
-        image: v(`menu-${cat}-${i}-image`, item.image)
+        image: getImgValue(`menu-${cat}-${i}-image`, item.image)
       }));
     });
 
@@ -1705,14 +1728,14 @@
         name:  v(`menu-extra-${i}-${j}-name`,  item.name),
         price: v(`menu-extra-${i}-${j}-price`, item.price),
         desc:  v(`menu-extra-${i}-${j}-desc`,  item.desc),
-        image: v(`menu-extra-${i}-${j}-image`, item.image)
+        image: getImgValue(`menu-extra-${i}-${j}-image`, item.image)
       }))
     }));
 
     // Gallery
     const galleryCount = document.querySelectorAll('.gallery-admin-item').length;
     data.gallery = Array.from({ length: galleryCount }, (_, i) => ({
-      url: v(`gallery-${i}-url`, ''),
+      url: getImgValue(`gallery-${i}-url`, ''),
       alt: v(`gallery-${i}-alt`, '')
     }));
 
@@ -1738,6 +1761,12 @@
   function v(id, fallback) {
     const el = document.getElementById(id);
     return el ? el.value : fallback;
+  }
+
+  function getImgValue(id, fallback) {
+    const el = document.getElementById(id);
+    if (!el) return fallback || '';
+    return el.value.trim() || el.dataset.fileurl || fallback || '';
   }
 
   // ===== SAVE =====
